@@ -123,8 +123,8 @@ static int exynos_target(struct cpufreq_policy *policy,
 
 #if defined(CONFIG_CPU_EXYNOS4210)
 	/* Do NOT step up max arm clock directly to reduce power consumption */
-	if (index == exynos_info->max_support_idx && old_index > 6)
-		index = 6;
+	if (index == exynos_info->max_support_idx && old_index > 7)
+		index = 7;
 #endif
 
 	freqs.new = freq_table[index].frequency;
@@ -544,13 +544,7 @@ static int exynos_cpufreq_cpu_init(struct cpufreq_policy *policy)
 		cpumask_setall(policy->cpus);
 	}
 
-	cpufreq_frequency_table_cpuinfo(policy, exynos_info->freq_table);
- 	
- 	/* Safe default startup limits */
-        policy->max = 1200000;
-        policy->min = 200000;
-
-  return 0;
+	return cpufreq_frequency_table_cpuinfo(policy, exynos_info->freq_table);
 }
 
 static int exynos_cpufreq_reboot_notifier_call(struct notifier_block *this,
