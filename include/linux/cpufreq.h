@@ -1,4 +1,4 @@
-CONFIG_CPU_FREQ_DEFAULT_GOV_ONDEMAND/*
+/*
  *  linux/include/linux/cpufreq.h
  *
  *  Copyright (C) 2001 Russell King
