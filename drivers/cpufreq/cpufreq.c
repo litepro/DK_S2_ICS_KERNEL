@@ -621,8 +621,8 @@ static ssize_t store_UV_mV_table(struct cpufreq_policy *policy,
 		for (i = 0; i < 16; i++) {
 			exynos4210_volt_table[i] *= 1000;
 
-			if (exynos4210_volt_table[i] > 1550000) {
-				exynos4210_volt_table[i] = 1550000;
+			if (exynos4210_volt_table[i] > 1500000) {
+				exynos4210_volt_table[i] = 1500000;
 
 			} else if (exynos4210_volt_table[i] < 800000) {
 				exynos4210_volt_table[i] = 800000;
