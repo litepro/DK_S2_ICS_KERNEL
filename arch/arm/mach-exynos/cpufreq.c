@@ -114,6 +114,14 @@ static int exynos_target(struct cpufreq_policy *policy,
 		goto out;
 	}
 
+  	/* Prevent freqs going above max policy - originally by netarchy */
+	printk("freq_table[index].frequency = %d",freq_table[index].frequency);
+	printk("Policy Max = %d\n",policy->max);
+
+  	//while (freq_table[index].frequency > policy->max) {
+    //	index += 1;
+ 	//}
+
 	/* Need to set performance limitation */
 	if (!exynos_cpufreq_lock_disable && (index > g_cpufreq_lock_level))
 		index = g_cpufreq_lock_level;
@@ -123,13 +131,13 @@ static int exynos_target(struct cpufreq_policy *policy,
 
 #if defined(CONFIG_CPU_EXYNOS4210)
 	/* Do NOT step up max arm clock directly to reduce power consumption */
-	if (index == exynos_info->max_support_idx && old_index > 3)
-		index = 3;
+	if (index == exynos_info->max_support_idx && old_index > 8)
+		index = 8;
 #endif
 
 	freqs.new = freq_table[index].frequency;
 	freqs.cpu = policy->cpu;
-
+	
 	safe_arm_volt = exynos_get_safe_armvolt(old_index, index);
 
 	arm_volt = volt_table[index];
@@ -524,6 +532,8 @@ static struct notifier_block exynos_cpufreq_policy_notifier = {
 
 static int exynos_cpufreq_cpu_init(struct cpufreq_policy *policy)
 {
+	int ret;
+		
 	policy->cur = policy->min = policy->max = exynos_getspeed(policy->cpu);
 
 	cpufreq_frequency_table_get_attr(exynos_info->freq_table, policy->cpu);
@@ -544,13 +554,13 @@ static int exynos_cpufreq_cpu_init(struct cpufreq_policy *policy)
 		cpumask_setall(policy->cpus);
 	}
 
-	cpufreq_frequency_table_cpuinfo(policy, exynos_info->freq_table);
+	ret = cpufreq_frequency_table_cpuinfo(policy, exynos_info->freq_table);
 
 	/* Safe default startup limits */
 	policy->max = 1000000;
 	policy->min = 200000;
 
-	return 0;
+	return ret;
 }
 
 static int exynos_cpufreq_reboot_notifier_call(struct notifier_block *this,
