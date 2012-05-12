@@ -554,7 +554,7 @@ static int exynos_cpufreq_cpu_init(struct cpufreq_policy *policy)
         cpufreq_frequency_table_cpuinfo(policy, exynos_info->freq_table);
 
 	/* Safe default startup limits */
-	policy->max = 1200000;
+	policy->max = 1000000;
   	policy->min = 200000;
 
 	return 0;
