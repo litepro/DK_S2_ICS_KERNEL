@@ -89,7 +89,7 @@ static int exynos_target(struct cpufreq_policy *policy,
 			  unsigned int target_freq,
 			  unsigned int relation)
 {
-	unsigned int index, old_index;
+	unsigned int index, old_index, policy_max_index = 0;
 	unsigned int arm_volt, safe_arm_volt = 0;
 	int ret = 0;
 	struct cpufreq_frequency_table *freq_table = exynos_info->freq_table;
@@ -113,7 +113,8 @@ static int exynos_target(struct cpufreq_policy *policy,
 		ret = -EINVAL;
 		goto out;
 	}
-
+	
+	
 	/* Need to set performance limitation */
 	if (!exynos_cpufreq_lock_disable && (index > g_cpufreq_lock_level))
 		index = g_cpufreq_lock_level;
@@ -126,6 +127,12 @@ static int exynos_target(struct cpufreq_policy *policy,
 	if (index == exynos_info->max_support_idx && old_index > 3)
 		index = 3;
 #endif
+
+  /* Prevent freqs going above max policy - originally by netarchy */
+  while (freq_table[index].frequency > policy->max) {
+    index += 1;
+  }
+
 
 	freqs.new = freq_table[index].frequency;
 	freqs.cpu = policy->cpu;
@@ -161,7 +168,6 @@ static int exynos_target(struct cpufreq_policy *policy,
 
 out:
 	mutex_unlock(&set_freq_lock);
-
 	return ret;
 }
 
@@ -525,12 +531,13 @@ static struct notifier_block exynos_cpufreq_policy_notifier = {
 static int exynos_cpufreq_cpu_init(struct cpufreq_policy *policy)
 {
 	policy->cur = policy->min = policy->max = exynos_getspeed(policy->cpu);
-
+ 	
+	
 	cpufreq_frequency_table_get_attr(exynos_info->freq_table, policy->cpu);
 
 	/* set the transition latency value */
 	policy->cpuinfo.transition_latency = 100000;
-
+	
 	/*
 	 * EXYNOS4 multi-core processors has 2 cores
 	 * that the frequency cannot be set independently.
@@ -544,7 +551,13 @@ static int exynos_cpufreq_cpu_init(struct cpufreq_policy *policy)
 		cpumask_setall(policy->cpus);
 	}
 
-	return cpufreq_frequency_table_cpuinfo(policy, exynos_info->freq_table);
+        cpufreq_frequency_table_cpuinfo(policy, exynos_info->freq_table);
+
+	/* Safe default startup limits */
+	policy->max = 1200000;
+  	policy->min = 200000;
+
+	return 0;
 }
 
 static int exynos_cpufreq_reboot_notifier_call(struct notifier_block *this,
